@@ -1,5 +1,5 @@
 use leptos::task::spawn_local;
-use leptos::{ev::SubmitEvent, prelude::*};
+use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -27,67 +27,48 @@ enum EvalResponse {
     },
 }
 
-#[derive(Clone)]
-struct HistoryEntry {
-    input: String,
-    output: Option<String>,
-    is_error: bool,
-}
-
 #[component]
 pub fn App() -> impl IntoView {
-    let (input, set_input) = signal(String::new());
-    let (input_buffer, set_input_buffer) = signal(String::new());
-    let (history, set_history) = signal(Vec::<HistoryEntry>::new());
+    let (code, set_code) = signal(String::new());
+    let (output, set_output) = signal(String::from("// Output will appear here"));
+    let (is_error, set_is_error) = signal(false);
     let (is_evaluating, set_is_evaluating) = signal(false);
+    let (debounce_timer, set_debounce_timer) = signal(None::<i32>);
 
-    let eval_handler = move |ev: SubmitEvent| {
-        ev.prevent_default();
-
-        let current_input = input.get_untracked();
-        if current_input.trim().is_empty() { return; }
-
-        let code = if input_buffer.get_untracked().is_empty() {
-            current_input.clone()
-        } else {
-            format!("{}\n{}", input_buffer.get_untracked(), current_input)
-        };
+    let evaluate_code = move |code_text: String| {
+        if code_text.trim().is_empty() {
+            set_output.set("// Output will appear here".to_string());
+            set_is_error.set(false);
+            return;
+        }
 
         set_is_evaluating.set(true);
 
         spawn_local(async move {
-            let args = serde_wasm_bindgen::to_value(&EvalRequest { code: code.clone() })
+            let args = serde_wasm_bindgen::to_value(&EvalRequest { code: code_text })
                 .unwrap();
             let result = invoke("eval_code", args).await;
             let response: EvalResponse = serde_wasm_bindgen::from_value(result).unwrap();
 
             match response {
                 EvalResponse::Success { value } => {
-                    set_history.update(|h| h.push(HistoryEntry {
-                        input: code,
-                        output: value,
-                        is_error: false,
-                    }));
-                    set_input_buffer.set(String::new());
-                    set_input.set(String::new());
+                    if let Some(val) = value {
+                        set_output.set(val);
+                        set_is_error.set(false);
+                    } else {
+                        set_output.set("// Function defined successfully".to_string());
+                        set_is_error.set(false);
+                    }
                 }
                 EvalResponse::Incomplete => {
-                    set_input_buffer.update(|buf| {
-                        if !buf.is_empty() { buf.push('\n'); }
-                        buf.push_str(&current_input);
-                    });
-                    set_input.set(String::new());
+                    set_output.set("// Code incomplete, keep writing...".to_string());
+                    set_is_error.set(false);
                 }
                 EvalResponse::Error { message, error_type, line, column } => {
-                    let err_msg = format!("{} error at {}:{}: {}",
+                    let err_msg = format!("{} error at {}:{}\n{}",
                         error_type, line, column, message);
-                    set_history.update(|h| h.push(HistoryEntry {
-                        input: code,
-                        output: Some(err_msg),
-                        is_error: true,
-                    }));
-                    set_input_buffer.set(String::new());
-                    set_input.set(String::new());
+                    set_output.set(err_msg);
+                    set_is_error.set(true);
                 }
             }
 
@@ -95,64 +76,80 @@ pub fn App() -> impl IntoView {
         });
     };
 
+    let on_input = move |ev| {
+        let new_code = event_target_value(&ev);
+        set_code.set(new_code.clone());
+
+        if let Some(timer_id) = debounce_timer.get_untracked() {
+            web_sys::window()
+                .unwrap()
+                .clear_timeout_with_handle(timer_id);
+        }
+
+        let callback = Closure::wrap(Box::new(move || {
+            evaluate_code(new_code.clone());
+        }) as Box<dyn Fn()>);
+
+        let timer_id = web_sys::window()
+            .unwrap()
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                callback.as_ref().unchecked_ref(),
+                500,
+            )
+            .unwrap();
+
+        callback.forget();
+        set_debounce_timer.set(Some(timer_id));
+    };
+
+    let eval_handler = move |_| {
+        let current_code = code.get_untracked();
+        evaluate_code(current_code);
+    };
+
     let reset_handler = move |_| {
         spawn_local(async move {
             invoke("reset_interpreter", JsValue::NULL).await;
-            set_history.set(Vec::new());
-            set_input_buffer.set(String::new());
-            set_input.set(String::new());
+            set_code.set(String::new());
+            set_output.set("// Output will appear here".to_string());
+            set_is_error.set(false);
         });
     };
 
-    let prompt = move || {
-        if input_buffer.get().is_empty() { "> " } else { "... " }
-    };
-
     view! {
-        <div class="repl-container">
+        <div class="editor-container">
             <h1>"FEROX REPL"</h1>
 
-            <div class="history-panel">
-                <For
-                    each=move || history.get()
-                    key=|entry| entry.input.clone()
-                    children=move |entry: HistoryEntry| {
-                        view! {
-                            <div class="history-entry">
-                                <div class="history-input">
-                                    {entry.input}
-                                </div>
-                                {entry.output.map(|out| view! {
-                                    <div class=move || {
-                                        if entry.is_error { "history-output history-error" }
-                                        else { "history-output" }
-                                    }>
-                                        {out}
-                                    </div>
-                                })}
-                            </div>
-                        }
-                    }
+            <div class="editor-panel">
+                <textarea
+                    class="code-editor"
+                    prop:value=move || code.get()
+                    on:input=on_input
+                    placeholder="Enter FEROX code..."
+                    spellcheck="false"
                 />
             </div>
 
-            <form class="input-panel" on:submit=eval_handler>
-                <span class="prompt">{prompt}</span>
-                <input
-                    type="text"
-                    class="code-input"
-                    prop:value=move || input.get()
-                    on:input=move |ev| set_input.set(event_target_value(&ev))
-                    prop:disabled=move || is_evaluating.get()
-                    placeholder="Enter FEROX code..."
-                />
-                <button type="submit" disabled=move || is_evaluating.get()>
-                    "Eval"
-                </button>
-            </form>
+            <div class="output-panel">
+                <div class="output-header">
+                    <span class="prompt">"> "</span>
+                    <span class="output-label">"Output"</span>
+                </div>
+                <div class=move || {
+                    if is_error.get() { "output-content output-error" }
+                    else { "output-content" }
+                }>
+                    {move || output.get()}
+                </div>
+            </div>
 
             <div class="control-panel">
-                <button on:click=reset_handler>"Reset"</button>
+                <button class="eval-button" on:click=eval_handler disabled=move || is_evaluating.get()>
+                    "Eval"
+                </button>
+                <button class="reset-button" on:click=reset_handler>
+                    "Reset"
+                </button>
             </div>
         </div>
     }
