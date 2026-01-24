@@ -2,7 +2,7 @@
 
 ## Crate Structure
 
-The project consists of two Rust crates:
+The project consists of three Rust crates in a workspace:
 
 ### 1. Library Crate (ferox_lib)
 
@@ -107,6 +107,50 @@ src/
 └── file_runner.rs    # File execution logic (optional separate file)
 ```
 
+### 3. Desktop App (ferox-tauri)
+
+**Location**: `ferox-tauri/`
+
+**Purpose**: Live-coding desktop application with modern UI
+
+**Technology Stack**:
+- **Tauri 2.x** - Desktop framework (Rust backend)
+- **Leptos 0.8** - Reactive frontend (compiled to WASM)
+- **Trunk** - WASM build tool
+
+**Structure**:
+
+```
+ferox-tauri/
+├── src/                    # Frontend (Leptos)
+│   ├── main.rs            # WASM entry point
+│   └── app.rs             # Main App component
+├── src-tauri/             # Backend (Tauri)
+│   ├── src/
+│   │   └── lib.rs        # IPC commands
+│   └── Cargo.toml        # Backend deps (ferox-core)
+├── styles.css             # Dark theme
+└── Cargo.toml             # Frontend deps (Leptos, web-sys)
+```
+
+**Architecture**:
+- **Frontend**: Single-page app with live editor
+  - Large textarea for code editing
+  - Decorations overlay for inline results
+  - Output panel for final results/errors
+- **Backend**: Tauri IPC commands wrapping ferox-core
+  - `eval_code(code)` - Evaluate with fresh interpreter
+  - `reset_interpreter()` - Clear state
+- **State**: Mutex-protected Evaluator, reset before each eval
+
+**Key Features**:
+- 500ms debounced auto-evaluation
+- Inline decorations: `square(5);  // => 25`
+- Scroll-synced overlay
+- Fresh interpreter on each evaluation (no redefinition errors)
+
+See [tauri-app.md](tauri-app.md) for detailed documentation.
+
 ## Data Flow
 
 ### REPL Mode Flow
@@ -147,6 +191,36 @@ User Input (stdin)
 [Evaluator] Statement → Option<Value>
     ↓
 [Binary] Display only explicit outputs (print)
+```
+
+### Desktop App Mode Flow
+
+```
+User Types in Editor (Leptos textarea)
+    ↓
+[Frontend] Debounce 500ms
+    ↓
+[Frontend] Clear old decorations
+    ↓
+[IPC] invoke("eval_code", { code })
+    ↓
+[Backend] Reset Evaluator (fresh state)
+    ↓
+[Backend] Parser::from_source(code)
+    ↓
+[Lexer] Source → Tokens
+    ↓
+[Parser] Tokens → Program
+    ↓
+[Backend] Loop through statements
+    ↓
+[Evaluator] stmt → Value + collect decorations
+    ↓
+[Backend] Return { value, decorations } or error
+    ↓
+[Frontend] Render decorations overlay
+    ↓
+[Frontend] Display output in panel
 ```
 
 ## Environment Management

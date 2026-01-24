@@ -6,13 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **FEROX** (Functional Expression Runtime for Operations and eXecution) is an interpreter for a simplified imperative/functional programming language. This is an educational project focused on building an interpreter from scratch using Rust.
 
-## Conding Guidelines
+The project consists of three main components:
+1. **ferox-core** - Core interpreter library (no external dependencies)
+2. **ferox-cli** - Command-line REPL and file execution
+3. **ferox-tauri** - Desktop app with live-coding editor (Tauri + Leptos)
+
+## Coding Guidelines
 
 - Do comments sparingly, only comment complex code
 
 The interpreter supports:
-- Interactive REPL mode
+- Interactive REPL mode (CLI and Desktop)
 - File execution mode (.frx files)
+- Live-coding editor with real-time evaluation (Desktop)
 - Strong static typing (number, string, boolean)
 - Functions with recursion
 - Lexical scoping with let-in expressions
@@ -20,15 +26,17 @@ The interpreter supports:
 
 ## Quick Start
 
+### CLI (ferox-cli)
+
 ```bash
 # Build the project
 cargo build
 
 # Run REPL (interactive mode)
-cargo run
+cargo run -p ferox-cli
 
 # Execute a .frx file
-cargo run examples/fibonacci.frx
+cargo run -p ferox-cli -- frx_examples/fibonacci.frx
 
 # Run tests
 cargo test
@@ -41,23 +49,50 @@ cargo fmt
 cargo clippy
 ```
 
+### Desktop App (ferox-tauri)
+
+```bash
+# Development mode
+cd ferox-tauri/src-tauri
+cargo tauri dev
+
+# Production build
+cd ferox-tauri/src-tauri
+cargo tauri build
+```
+
 ## Project Structure
 
 ```
 ferox/
-├── src/
-│   ├── lib.rs          # Library crate entry point
-│   ├── main.rs         # Binary crate (CLI & REPL)
-│   ├── lexer.rs        # Tokenization
-│   ├── parser.rs       # Parsing
-│   ├── ast.rs          # AST definitions
-│   ├── evaluator.rs    # Evaluation engine
-│   ├── environment.rs  # Scope management
-│   ├── error.rs        # Error types
-│   └── ...
-├── examples/           # Example .frx files
-├── .claude/            # Detailed design documentation
-└── Cargo.toml
+├── ferox-core/            # Core interpreter library
+│   ├── src/
+│   │   ├── lib.rs         # Library crate entry point
+│   │   ├── lexer.rs       # Tokenization
+│   │   ├── parser.rs      # Parsing
+│   │   ├── ast.rs         # AST definitions
+│   │   ├── evaluator.rs   # Evaluation engine
+│   │   ├── environment.rs # Scope management
+│   │   └── ...
+│   └── Cargo.toml         # No external dependencies
+│
+├── ferox-cli/             # Command-line interface
+│   ├── src/
+│   │   └── main.rs        # REPL & file execution
+│   └── Cargo.toml         # CLI dependencies (rustyline, clap)
+│
+├── ferox-tauri/           # Desktop application
+│   ├── src/
+│   │   ├── main.rs        # Frontend entry point
+│   │   └── app.rs         # Live editor component
+│   ├── src-tauri/
+│   │   └── src/lib.rs     # Tauri backend (IPC commands)
+│   ├── styles.css         # Dark theme styling
+│   └── Cargo.toml         # Frontend dependencies (Leptos, WASM)
+│
+├── frx_examples/          # Example .frx files
+├── .claude/               # Detailed design documentation
+└── Cargo.toml             # Workspace configuration
 ```
 
 ## Documentation Structure
@@ -109,34 +144,56 @@ This CLAUDE.md provides a high-level overview. **Detailed design documentation i
   - Error message guidelines
   - Comprehensive test cases
 
+- **[.claude/tauri-app.md](.claude/tauri-app.md)** - Desktop application (ferox-tauri)
+  - Live-coding editor with debounced evaluation
+  - Inline result decorations (ghost comments)
+  - Scroll-synced overlay implementation
+  - Tauri IPC architecture
+  - Frontend/Backend separation
+  - State management and reset strategy
+
 ## Key Implementation Principles
 
-### 1. Two-Crate Architecture
+### 1. Three-Crate Architecture
 
-**Library Crate** (`src/lib.rs`):
+**Library Crate** (`ferox-core`):
 - Contains all parsing and evaluation logic
 - **NO external dependencies** (only Rust std)
 - Independently testable
 - Exposes clean public API
 
-**Binary Crate** (`src/main.rs`):
+**CLI Binary** (`ferox-cli`):
 - REPL and file execution interface
-- May use external dependencies (rustyline, clap, colored)
+- Uses external dependencies (rustyline, clap)
 - Handles user interaction and pretty printing
+
+**Desktop App** (`ferox-tauri`):
+- Live-coding editor with Tauri + Leptos
+- Frontend: WASM-compiled Leptos components
+- Backend: Tauri IPC commands wrapping ferox-core
+- Real-time evaluation with debouncing
+- Inline result decorations
 
 ### 2. Execution Modes
 
-**REPL Mode** (no arguments):
+**REPL Mode** (CLI - no arguments):
 - Interactive line-by-line evaluation
 - Continuation prompts (`>` and `...`)
 - Auto-prints expression results
 - Continues after errors
 
-**File Mode** (with .frx file path):
+**File Mode** (CLI - with .frx file path):
 - Executes entire file sequentially
 - No auto-print (only explicit `print()` outputs)
 - Exits immediately on first error
 - Error messages include filename:line:column
+
+**Live Editor Mode** (Desktop App):
+- Real-time evaluation with 500ms debounce
+- Fresh interpreter reset before each evaluation
+- Inline result decorations as ghost comments
+- Scroll-synced overlay for multi-line code
+- Bottom output panel for final result/errors
 
 ### 3. Error Handling
 
@@ -260,5 +317,6 @@ For detailed information, always refer to the `.claude/` directory:
 - Multi-line implementation → `.claude/multiline.md`
 - File execution → `.claude/file-execution.md`
 - Error handling → `.claude/error-handling.md`
+- Desktop app (Tauri) → `.claude/tauri-app.md`
 
 These files contain comprehensive implementation details, code examples, and design rationale.
