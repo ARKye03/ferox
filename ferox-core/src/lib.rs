@@ -12,14 +12,15 @@
 
 // Module declarations
 pub mod ast;
+pub mod environment;
+pub mod evaluator;
 pub mod lexer;
 pub mod parser;
-// pub mod evaluator;
-// pub mod environment;
-// pub mod error;
 
 // Re-exports for convenient access
 pub use ast::*;
+pub use environment::*;
+pub use evaluator::*;
 pub use lexer::*;
 pub use parser::*;
 
