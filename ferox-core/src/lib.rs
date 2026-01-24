@@ -13,7 +13,7 @@
 // Module declarations
 pub mod lexer;
 pub mod ast;
-// pub mod parser;
+pub mod parser;
 // pub mod evaluator;
 // pub mod environment;
 // pub mod error;
@@ -21,6 +21,7 @@ pub mod ast;
 // Re-exports for convenient access
 pub use lexer::*;
 pub use ast::*;
+pub use parser::*;
 
 #[cfg(test)]
 mod tests {
