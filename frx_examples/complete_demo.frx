@@ -1,0 +1,27 @@
+function celsius_to_fahrenheit(c) => (c * 9 / 5) + 32;
+function factorial(n) => if (n <= 1) 1 else n * factorial(n - 1);
+function fibonacci(n) => if (n <= 1) n else fibonacci(n - 1) + fibonacci(n - 2);
+
+print("=== Temperature Conversion ===");
+let temp = 25 in print("25°C = " @ celsius_to_fahrenheit(temp) @ "°F");
+
+print("");
+print("=== Factorial ===");
+print("5! = " @ factorial(5));
+
+print("");
+print("=== Fibonacci ===");
+print("fib(10) = " @ fibonacci(10));
+
+print("");
+print("=== Mathematical Constants ===");
+print("PI = " @ PI);
+print("sin(PI/2) = " @ sin(PI / 2));
+
+print("");
+print("=== Complex Expression ===");
+let
+  x = 5;
+  y = 10;
+  result = (x * y) + sqrt(16) - floor(3.7)
+in print("Result = " @ result);

@@ -225,10 +225,41 @@ fn run_file(path: PathBuf) {
     // Verify the file has .frx extension
     match path.extension().and_then(|s| s.to_str()) {
         Some("frx") => {
-            // TODO: Implement file execution
-            println!("Executing file: {}", path.display());
-            eprintln!("Error: File execution not yet implemented");
-            process::exit(1);
+            // Read the file
+            let source = match std::fs::read_to_string(&path) {
+                Ok(content) => content,
+                Err(e) => {
+                    eprintln!("Error reading file {}: {}", path.display(), e);
+                    process::exit(1);
+                }
+            };
+
+            // Parse the program
+            let mut parser = match Parser::from_source(&source) {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("{}:{}", path.display(), e);
+                    process::exit(1);
+                }
+            };
+
+            let program = match parser.parse_program() {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("{}:{}", path.display(), e);
+                    process::exit(1);
+                }
+            };
+
+            // Evaluate the program
+            let mut evaluator = Evaluator::new();
+            if let Err(e) = evaluator.eval_program(&program) {
+                eprintln!("{}:{}", path.display(), e);
+                process::exit(1);
+            }
+
+            // Success - exit with 0
+            process::exit(0);
         }
         _ => {
             eprintln!("Error: File must have .frx extension");
