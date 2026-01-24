@@ -4,24 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FEROX (Functional Expression Runtime for Operations and eXecution) is an interpreter for a simplified imperative/functional programming language. This is an educational project focused on building an interpreter from scratch using Rust.
+**FEROX** (Functional Expression Runtime for Operations and eXecution) is an interpreter for a simplified imperative/functional programming language. This is an educational project focused on building an interpreter from scratch using Rust.
 
-## Build and Development Commands
+The interpreter supports:
+- Interactive REPL mode
+- File execution mode (.frx files)
+- Strong static typing (number, string, boolean)
+- Functions with recursion
+- Lexical scoping with let-in expressions
+- Comprehensive error reporting
+
+## Quick Start
 
 ```bash
 # Build the project
 cargo build
 
-# Run the interpreter (REPL mode)
+# Run REPL (interactive mode)
 cargo run
 
-# Run a .frx file
-cargo run <path/to/file.frx>
+# Execute a .frx file
 cargo run examples/fibonacci.frx
-
-# Run in release mode
-cargo run --release
-cargo run --release script.frx
 
 # Run tests
 cargo test
@@ -29,574 +32,229 @@ cargo test
 # Run a specific test
 cargo test <test_name>
 
-# Check code without building
-cargo check
-
-# Format code
+# Format and lint
 cargo fmt
-
-# Lint code
 cargo clippy
 ```
 
-## Architecture
+## Project Structure
 
-The project must be structured as two separate Rust crates:
-
-1. **Library Crate**: Contains all parsing and evaluation logic for FEROX
-   - Must use only Rust standard library (no external dependencies)
-   - Implements lexer, parser, AST, and evaluator
-   - Handles three error types: Lexical, Syntax, and Semantic
-
-2. **Binary Crate**: The interactive REPL console application
-   - May use external dependencies for console interaction
-   - Provides the user-facing interpreter interface
-
-### Language Features (Required Subset)
-
-The interpreter must support:
-
-- **Basic expressions**: Print statements, arithmetic (`+`, `-`, `*`, `/`, `^`), mathematical functions (`sin`, `cos`, `log`, etc.)
-- **Inline functions**: `function name(params) => expression;` with recursion support
-- **Variables**: `let-in` expressions with lexical scoping
-- **Conditionals**: `if-else` expressions (both branches required)
-- **Types**: `string`, `number`, `boolean` with strong typing
-
-All instructions are single-line expressions ending with `;`.
-
-### REPL Behavior
-
-- Functions persist across expressions once declared
-- Functions cannot be redefined
-- Expressions with return values print automatically (even without `print`)
-- Each input line is evaluated immediately
-
-### Error Handling Requirements
-
-Detect and report exactly one error per expression:
-
-1. **Lexical Error**: Invalid tokens (e.g., `14a`)
-2. **Syntax Error**: Malformed expressions, unbalanced parentheses, incomplete statements
-3. **Semantic Error**: Type mismatches, wrong argument counts, undefined functions
-
-Error messages must be informative and follow the format: `! ERROR_TYPE: description`
-
-### Implementation Guidance
-
-- **Recursive descent parsing** is recommended for parsing the language
-- Focus on a clean type hierarchy for expressions and interpreter concepts
-- The language grammar is designed to be implementable without advanced compiler theory
-- Variables have lexical scope (only exist within their `let-in` expression)
-- The `let-in` expression returns the value of its body
-
-## Multi-Line Support Design
-
-### Extended Syntax
-
-Multi-line `let-in` expressions allow variables to be defined across multiple lines:
-
-```js
-let
-  a = 42;
-  b = sin(a);
-  c = b * 2
-in print(a + b + c);
+```
+ferox/
+├── src/
+│   ├── lib.rs          # Library crate entry point
+│   ├── main.rs         # Binary crate (CLI & REPL)
+│   ├── lexer.rs        # Tokenization
+│   ├── parser.rs       # Parsing
+│   ├── ast.rs          # AST definitions
+│   ├── evaluator.rs    # Evaluation engine
+│   ├── environment.rs  # Scope management
+│   ├── error.rs        # Error types
+│   └── ...
+├── examples/           # Example .frx files
+├── .claude/            # Detailed design documentation
+└── Cargo.toml
 ```
 
-Key syntax rules:
-- Semicolons separate variable declarations (last declaration before `in` may omit semicolon)
-- The `in` keyword marks the transition from declarations to body
-- The body expression still ends with `;`
-- Newlines are allowed anywhere but don't change semantics
+## Documentation Structure
 
-### Architecture Components for Multi-Line
+This CLAUDE.md provides a high-level overview. **Detailed design documentation is in `.claude/` directory:**
 
-#### 1. Lexer/Tokenizer Enhancements
+### Core Design Documents
 
-**Position Tracking**:
-- Add `Span` or `Location` struct containing:
-  - `line: usize` - Line number (1-indexed)
-  - `column: usize` - Column number (1-indexed)
-  - `offset: usize` - Byte offset in source (optional, useful for slicing)
-- Every token should carry its span: `Token { kind: TokenKind, span: Span }`
-- Track newlines but treat them as whitespace in most contexts
+- **[.claude/architecture.md](.claude/architecture.md)** - Complete architecture overview
+  - Two-crate structure (library + binary)
+  - Module organization and responsibilities
+  - Data flow diagrams (REPL vs File mode)
+  - Environment and scope management
+  - Public API design
+  - Memory and ownership patterns
 
-**Newline Handling**:
-- Newlines are generally insignificant (like whitespace)
-- However, track them for error reporting
-- Consider: Should a newline in the middle of an expression be allowed? (Answer: Yes, for flexibility)
+- **[.claude/language-spec.md](.claude/language-spec.md)** - FEROX language specification
+  - Type system (number, string, boolean)
+  - All operators and precedence rules
+  - Expression and statement syntax
+  - Built-in functions and constants
+  - Formal grammar
+  - Example programs
 
-#### 2. Parser Enhancements
+- **[.claude/multiline.md](.claude/multiline.md)** - Multi-line support implementation
+  - Extended syntax for multi-line let-in
+  - Span/position tracking in lexer
+  - Parser changes for multi-line expressions
+  - AST modifications with span information
+  - REPL continuation prompt implementation
+  - Incomplete expression detection
+  - Enhanced error reporting with line/column
 
-**Multi-line `let-in` Parsing**:
+- **[.claude/file-execution.md](.claude/file-execution.md)** - File execution mode (.frx files)
+  - Command-line interface design
+  - File vs REPL execution differences
+  - File format specification
+  - Binary crate architecture
+  - Statement vs Expression distinction
+  - Error reporting with file context
+  - Example .frx files
+
+- **[.claude/error-handling.md](.claude/error-handling.md)** - Error handling strategy
+  - Four error types: Lexical, Syntax, Semantic, Runtime
+  - Error structure definitions
+  - Detection phase for each error type
+  - Error message formatting (REPL vs File mode)
+  - Single-error rule enforcement
+  - Error message guidelines
+  - Comprehensive test cases
+
+## Key Implementation Principles
+
+### 1. Two-Crate Architecture
+
+**Library Crate** (`src/lib.rs`):
+- Contains all parsing and evaluation logic
+- **NO external dependencies** (only Rust std)
+- Independently testable
+- Exposes clean public API
+
+**Binary Crate** (`src/main.rs`):
+- REPL and file execution interface
+- May use external dependencies (rustyline, clap, colored)
+- Handles user interaction and pretty printing
+
+### 2. Execution Modes
+
+**REPL Mode** (no arguments):
+- Interactive line-by-line evaluation
+- Continuation prompts (`>` and `...`)
+- Auto-prints expression results
+- Continues after errors
+
+**File Mode** (with .frx file path):
+- Executes entire file sequentially
+- No auto-print (only explicit `print()` outputs)
+- Exits immediately on first error
+- Error messages include filename:line:column
+
+### 3. Error Handling
+
+**Single Error Rule**: Report only the first error, then stop.
+
+Error detection order:
+1. **Lexical** (invalid tokens) → during tokenization
+2. **Syntax** (malformed expressions) → during parsing
+3. **Semantic** (type errors, undefined refs) → during evaluation
+4. **Runtime** (division by zero, etc.) → during execution
+
+See [.claude/error-handling.md](.claude/error-handling.md) for complete strategy.
+
+### 4. Language Features
+
+Core required features:
+- Basic expressions: arithmetic, comparison, logical
+- Inline functions: `function name(params) => body;`
+- Variables: `let x = value in expression`
+- Multi-line let-in: variables across multiple lines
+- Conditionals: `if (cond) expr else expr`
+- Recursion support
+- Strong typing with semantic checks
+
+See [.claude/language-spec.md](.claude/language-spec.md) for full language specification.
+
+## Implementation Roadmap
+
+When implementing features, follow this order:
+
+### Phase 1: Single-Line Interpreter
+1. Implement lexer with basic tokenization
+2. Build parser for single-line expressions
+3. Create evaluator with environment management
+4. Add basic error handling
+5. Implement simple REPL
+
+### Phase 2: Multi-Line Support
+1. Add span tracking to lexer (see [.claude/multiline.md](.claude/multiline.md))
+2. Update AST nodes with span information
+3. Extend let-in parser for multiple declarations
+4. Implement incomplete expression detection
+5. Update REPL with continuation prompts
+6. Enhance error reporting with line/column
+
+### Phase 3: File Execution
+1. Add Statement type (Expression vs FunctionDef)
+2. Implement `parse_program()` for entire files
+3. Update main.rs with CLI argument handling
+4. Implement file reading and execution
+5. Add filename context to error messages
+6. Create example .frx files
+
+### Phase 4: Polish
+1. Comprehensive testing (lexer, parser, evaluator, integration)
+2. Improve error messages for clarity
+3. Add comments and documentation
+4. Performance optimization if needed
+
+## Critical Constraints
+
+### Library Crate Rules
+- ✅ Only Rust standard library
+- ❌ No external crates (no regex, no nom, no logos)
+- ✅ Implement lexer and parser from scratch
+- ✅ Recommended: Recursive descent parsing
+
+### Language Constraints
+- Functions cannot be redefined (enforce at definition time)
+- Variables are lexically scoped (only exist in let-in body)
+- All instructions end with `;`
+- Both if-else branches required
+- Strong typing (no implicit conversions except @ operator)
+
+## Testing Strategy
+
+Create tests for each layer:
+
+**Lexer tests**: Tokenization of all constructs, error cases
+**Parser tests**: Each expression type, nesting, errors
+**Evaluator tests**: Correct values, type checking, scoping
+**Integration tests**: Complete programs, REPL scenarios, .frx files
+**Error tests**: One test per error type, verify messages
+
+Example test structure:
 ```rust
-// Pseudocode structure
-fn parse_let_in() -> Result<LetInExpr, ParseError> {
-    expect_token(Let)?;
-
-    // Parse variable declarations
-    let mut declarations = vec![];
-    loop {
-        let name = expect_identifier()?;
-        expect_token(Equals)?;
-        let value = parse_expression()?;
-        declarations.push((name, value));
-
-        // Check for semicolon or 'in' keyword
-        if check_token(Semicolon) {
-            consume_token(); // consume semicolon
-            if check_token(In) {
-                break; // Last declaration before 'in'
-            }
-        } else if check_token(In) {
-            break; // 'in' without semicolon (allowed for last decl)
-        } else {
-            return syntax_error("Expected ';' or 'in'");
-        }
-    }
-
-    expect_token(In)?;
-    let body = parse_expression()?;
-    Ok(LetInExpr { declarations, body })
+#[test]
+fn test_fibonacci_recursion() {
+    let mut interp = Interpreter::new();
+    interp.eval("function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;").unwrap();
+    let result = interp.eval("fib(10);").unwrap();
+    assert_eq!(result, Some(Value::Number(89.0)));
 }
 ```
 
-**Expression Completeness Detection**:
-- Parser needs to detect incomplete expressions (for REPL)
-- Add method `is_complete_expression(&str) -> bool` or return specific error type
-- Check for:
-  - Unmatched parentheses/braces
-  - Dangling operators
-  - `let` without `in`
-  - Missing semicolon at end
-
-#### 3. AST Node Changes
-
-**Span Tracking in AST**:
-```rust
-// Every expression node should include span
-enum Expr {
-    Literal { value: Value, span: Span },
-    Binary { left: Box<Expr>, op: BinOp, right: Box<Expr>, span: Span },
-    LetIn { declarations: Vec<(String, Expr)>, body: Box<Expr>, span: Span },
-    // ... other variants
-}
-```
-
-Benefits:
-- Precise error reporting ("Error on line 3, column 5")
-- Ability to show code snippets with error markers
-- Debugging and source mapping
-
-**Multi-variable `let-in`**:
-```rust
-struct LetInExpr {
-    declarations: Vec<(Identifier, Expr)>, // Changed from single to Vec
-    body: Box<Expr>,
-    span: Span,
-}
-```
-
-#### 4. REPL Multi-line Input
-
-**Continuation Prompt**:
-```
-> let
-... a = 42;
-... b = 100
-... in print(a + b);
-142
-```
-
-**Implementation Strategy**:
-```rust
-fn repl_loop() {
-    let mut input_buffer = String::new();
-
-    loop {
-        let prompt = if input_buffer.is_empty() { "> " } else { "... " };
-        print!("{}", prompt);
-
-        let mut line = String::new();
-        stdin().read_line(&mut line)?;
-        input_buffer.push_str(&line);
-
-        // Try to parse
-        match try_parse(&input_buffer) {
-            Ok(expr) => {
-                // Complete expression, evaluate it
-                evaluate_and_print(expr);
-                input_buffer.clear();
-            },
-            Err(ParseError::Incomplete) => {
-                // Need more input, continue loop
-                continue;
-            },
-            Err(e) => {
-                // Real error, report it
-                print_error(e);
-                input_buffer.clear();
-            }
-        }
-    }
-}
-```
-
-**Incomplete Expression Detection**:
-- Track unclosed delimiters: `()`, `{}`, `[]`
-- Check for `let` without matching `in`
-- Check for unterminated strings
-- Return `ParseError::Incomplete` vs `ParseError::Syntax`
-
-#### 5. Enhanced Error Reporting
-
-**Rich Error Messages**:
-```
-! SYNTAX ERROR (line 3, column 12): Expected ';' or 'in' after variable declaration
-  |
-3 | b = 100 c = 200
-  |         ^ unexpected identifier
-```
-
-**Error Struct**:
-```rust
-struct ParseError {
-    kind: ErrorKind,  // Lexical, Syntax, Semantic
-    message: String,
-    span: Span,
-    source_snippet: Option<String>,  // Optional code excerpt
-}
-```
-
-**Display Implementation**:
-- Show line number and column
-- Optionally show source line with caret (^) pointing to error
-- Keep single-error rule (report only first error encountered)
-
-#### 6. Alternative Syntax Considerations
-
-**Comma-separated variables (alternative)**:
-```js
-let a = 42,
-    b = sin(a),
-    c = b * 2
-in print(a + b + c);
-```
-
-This mirrors the existing single-line syntax: `let a = 42, b = 100 in expr`
-
-**Decision needed**: Semicolon-separated vs comma-separated for multi-line
-- **Semicolon**: More imperative, clearer separation (recommended)
-- **Comma**: Matches existing single-line syntax better
-
-#### 7. Implementation Order
-
-Recommended implementation sequence:
-
-1. **Add Span tracking to lexer** - Foundation for everything else
-2. **Update Token and AST nodes** - Include span information
-3. **Extend `let-in` parser** - Support Vec of declarations
-4. **Add incomplete expression detection** - Parser returns `Incomplete` error
-5. **Update REPL** - Implement continuation prompt and buffering
-6. **Enhance error reporting** - Use span info for line/column display
-7. **Test thoroughly** - Multi-line expressions, edge cases, error conditions
-
-### Testing Strategy for Multi-Line
-
-Test cases to cover:
-- Simple multi-line `let-in` with 2-3 variables
-- Nested `let-in` expressions across lines
-- Multi-line with function calls and complex expressions
-- Error cases: missing `in`, unclosed parens, type errors on specific lines
-- Mixed single-line and multi-line code
-- REPL behavior: incomplete input, multi-line continuation, cancellation
-
-## File Execution Mode (.frx Files)
-
-The interpreter should support two execution modes:
-1. **REPL mode** - Interactive interpreter (no arguments)
-2. **File mode** - Execute a .frx source file (with file path argument)
-
-### Command-Line Interface
-
-```bash
-# REPL mode (interactive)
-cargo run
-
-# File execution mode
-cargo run <path/to/file.frx>
-
-# Or after building
-./ferox
-./ferox script.frx
-./ferox examples/fibonacci.frx
-```
-
-### File Format (.frx)
-
-FEROX source files use the `.frx` extension and contain a sequence of statements/expressions:
-
-```js
-// fibonacci.frx
-function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;
-
-let
-  a = 10;
-  b = fib(a)
-in print("Fibonacci of " @ a @ " is " @ b);
-
-print(fib(15));
-```
-
-**File execution semantics**:
-- Each statement is executed sequentially, top to bottom
-- Function definitions persist across statements (like in REPL)
-- No explicit output for non-print expressions (unlike REPL)
-  - REPL: `fib(5)` prints `8`
-  - File: `fib(5);` evaluates but produces no output
-  - File: `print(fib(5));` prints `8`
-- First error encountered stops execution
-
-### Binary Crate Architecture
-
-The binary crate (`src/main.rs`) should handle both modes:
-
-```rust
-use std::env;
-use std::fs;
-use std::io::{self, Write};
-use ferox_lib::{Interpreter, ParseError, RuntimeError};
-
-fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    match args.len() {
-        1 => run_repl(),
-        2 => run_file(&args[1]),
-        _ => {
-            eprintln!("Usage: ferox [script.frx]");
-            std::process::exit(1);
-        }
-    }
-}
-
-fn run_repl() {
-    // Interactive REPL implementation
-    // See "REPL Multi-line Input" section
-}
-
-fn run_file(path: &str) {
-    // Read and execute file
-    // See implementation strategy below
-}
-```
-
-### File Execution Implementation Strategy
-
-```rust
-fn run_file(path: &str) {
-    // 1. Validate file extension
-    if !path.ends_with(".frx") {
-        eprintln!("Error: File must have .frx extension");
-        std::process::exit(1);
-    }
-
-    // 2. Read file contents
-    let source = match fs::read_to_string(path) {
-        Ok(content) => content,
-        Err(e) => {
-            eprintln!("Error reading file '{}': {}", path, e);
-            std::process::exit(1);
-        }
-    };
-
-    // 3. Create interpreter instance
-    let mut interpreter = Interpreter::new();
-
-    // 4. Parse entire file into statements/expressions
-    // Option A: Parse as a single program (all statements)
-    // Option B: Parse line-by-line or statement-by-statement
-    match interpreter.parse_program(&source) {
-        Ok(statements) => {
-            // 5. Execute each statement
-            for stmt in statements {
-                if let Err(e) = interpreter.execute(stmt) {
-                    // Print error with file context
-                    print_file_error(path, &source, e);
-                    std::process::exit(1);
-                }
-            }
-        }
-        Err(e) => {
-            // Parse error - show with file context
-            print_file_error(path, &source, e);
-            std::process::exit(1);
-        }
-    }
-}
-
-fn print_file_error(filename: &str, source: &str, error: Error) {
-    // Format: ! ERROR_TYPE (filename:line:column): message
-    eprintln!("! {} ({}:{}:{}): {}",
-        error.kind,
-        filename,
-        error.span.line,
-        error.span.column,
-        error.message
-    );
-
-    // Optionally show source line with error marker
-    if let Some(line) = get_source_line(source, error.span.line) {
-        eprintln!("  |");
-        eprintln!("{} | {}", error.span.line, line);
-        eprintln!("  | {}^", " ".repeat(error.span.column - 1));
-    }
-}
-```
-
-### Library Crate Interface for File Mode
-
-The library crate needs to expose methods for parsing and executing programs:
-
-```rust
-// In ferox_lib
-
-pub struct Interpreter {
-    environment: Environment,  // Stores functions, variables
-}
-
-impl Interpreter {
-    pub fn new() -> Self {
-        // Initialize with built-in functions (sin, cos, log, etc.)
-    }
-
-    // For REPL: parse and execute single expression
-    pub fn eval(&mut self, source: &str) -> Result<Option<Value>, Error> {
-        // Returns Some(value) if expression produces output
-        // Returns None for definitions (functions)
-    }
-
-    // For files: parse entire program into statements
-    pub fn parse_program(&self, source: &str) -> Result<Vec<Statement>, ParseError> {
-        // Parse multiple statements from source
-    }
-
-    // Execute a single statement
-    pub fn execute(&mut self, stmt: Statement) -> Result<Option<Value>, RuntimeError> {
-        // Execute statement, update environment
-        // Return value only if statement explicitly produces output (print)
-    }
-
-    // Check if input is incomplete (for REPL only)
-    pub fn is_incomplete(&self, source: &str) -> bool {
-        // Used by REPL to determine if more input is needed
-    }
-}
-```
-
-### Program vs Statement vs Expression
-
-Design decision needed for file parsing:
-
-**Option A: Program is a sequence of top-level statements**
-```rust
-pub enum Statement {
-    Expression(Expr),           // Any expression ending with ;
-    FunctionDef(FunctionDef),   // function name(params) => body;
-}
-
-pub struct Program {
-    statements: Vec<Statement>,
-}
-```
-
-**Option B: Everything is an expression, statements are just expressions**
-```rust
-// No separate Statement type
-// A program is Vec<Expr>
-// Function definitions are Expr::FunctionDef
-```
-
-**Recommendation**: Option A - clearer separation between definitions and expressions, matches the language semantics better.
-
-### File Mode vs REPL Mode Differences
-
-| Aspect | REPL Mode | File Mode |
-|--------|-----------|-----------|
-| **Input** | Line-by-line with continuation | Entire file at once |
-| **Prompt** | `>` and `...` | None |
-| **Auto-print** | Yes (non-definition expressions) | No (only explicit `print`) |
-| **Error handling** | Print error, continue | Print error, exit |
-| **Incomplete input** | Wait for more lines | Syntax error |
-| **Exit** | EOF or explicit command | After execution or error |
-
-### File Execution Error Reporting
-
-Errors in file mode should include filename context:
-
-```
-! SEMANTIC ERROR (fibonacci.frx:8:15): Operator '+' cannot be used between 'string' and 'number'
-  |
-8 | in print("Result: " + fib(10));
-  |               ^
-```
-
-### Standard Library / Built-in Functions
-
-Both modes share the same built-in functions:
-- Math: `sin`, `cos`, `tan`, `log`, `sqrt`, `abs`, `floor`, `ceil`
-- Constants: `PI`, `E`
-- I/O: `print`
-- String: `@` operator for concatenation
-
-These should be initialized in `Interpreter::new()`.
-
-### File Execution Implementation Order
-
-1. **Update library API** - Add `parse_program` and `execute` methods
-2. **Implement Statement type** - Separate statements from expressions
-3. **Update main.rs** - Add command-line argument parsing
-4. **Implement run_file** - File reading and execution logic
-5. **Enhance error display** - File context in error messages
-6. **Test with .frx files** - Create example files and test execution
-
-### Example .frx Files for Testing
-
-**test_basic.frx**:
-```js
-print("Hello from FEROX!");
-print(42 + 58);
-```
-
-**test_functions.frx**:
-```js
-function square(x) => x * x;
-function cube(x) => x * square(x);
-
-print(square(5));
-print(cube(3));
-```
-
-**test_multiline.frx**:
-```js
-let
-  x = 10;
-  y = 20;
-  z = x + y
-in print("Sum: " @ z);
-```
-
-**test_fibonacci.frx**:
-```js
-function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;
-
-let i = 1 in print("fib(" @ i @ ") = " @ fib(i));
-let i = 5 in print("fib(" @ i @ ") = " @ fib(i));
-let i = 10 in print("fib(" @ i @ ") = " @ fib(i));
-```
-
-**test_error.frx** (should fail with clear error):
-```js
-function double(x) => x * 2;
-print(double("not a number"));  // Should produce semantic error
-```
+## Working with This Codebase
+
+### Before Making Changes
+1. Read relevant documentation in `.claude/` directory
+2. Understand the two-crate architecture
+3. Review error handling strategy
+4. Check language specification for semantics
+
+### When Adding Features
+1. Update tests first (TDD approach recommended)
+2. Follow existing code patterns
+3. Update `.claude/` docs if architecture changes
+4. Ensure error messages are clear and helpful
+
+### When Debugging
+1. Check which phase detects the error (lexer/parser/evaluator)
+2. Verify span tracking is correct
+3. Test in both REPL and file modes
+4. Ensure single-error rule is maintained
+
+## Additional Resources
+
+For detailed information, always refer to the `.claude/` directory:
+- Architecture questions → `.claude/architecture.md`
+- Language syntax/semantics → `.claude/language-spec.md`
+- Multi-line implementation → `.claude/multiline.md`
+- File execution → `.claude/file-execution.md`
+- Error handling → `.claude/error-handling.md`
+
+These files contain comprehensive implementation details, code examples, and design rationale.
