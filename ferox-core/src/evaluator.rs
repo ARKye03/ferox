@@ -426,9 +426,23 @@ impl Evaluator {
                 let base = self.eval_expr(&args[0])?;
                 let val = self.eval_expr(&args[1])?;
                 match (base, val) {
-                    (Value::Number(b), Value::Number(n)) => {
-                        Ok(Some(Value::Number(n.log(b))))
-                    }
+                    (Value::Number(b), Value::Number(n)) => Ok(Some(Value::Number(n.log(b)))),
+                    (b, v) => Err(EvalError::type_error(
+                        "number, number",
+                        &format!("{}, {}", b.type_name(), v.type_name()),
+                        span,
+                    )),
+                }
+            }
+
+            "pow" => {
+                if args.len() != 2 {
+                    return Err(EvalError::arity_error("pow", 2, args.len(), span));
+                }
+                let base = self.eval_expr(&args[0])?;
+                let val = self.eval_expr(&args[1])?;
+                match (base, val) {
+                    (Value::Number(b), Value::Number(n)) => Ok(Some(Value::Number(n.powf(b)))),
                     (b, v) => Err(EvalError::type_error(
                         "number, number",
                         &format!("{}, {}", b.type_name(), v.type_name()),
@@ -550,18 +564,9 @@ mod tests {
 
     #[test]
     fn test_eval_logical() {
-        assert_eq!(
-            eval("true && true;").unwrap(),
-            Some(Value::Boolean(true))
-        );
-        assert_eq!(
-            eval("true && false;").unwrap(),
-            Some(Value::Boolean(false))
-        );
-        assert_eq!(
-            eval("false || true;").unwrap(),
-            Some(Value::Boolean(true))
-        );
+        assert_eq!(eval("true && true;").unwrap(), Some(Value::Boolean(true)));
+        assert_eq!(eval("true && false;").unwrap(), Some(Value::Boolean(false)));
+        assert_eq!(eval("false || true;").unwrap(), Some(Value::Boolean(true)));
         assert_eq!(eval("!true;").unwrap(), Some(Value::Boolean(false)));
     }
 
