@@ -17,3 +17,4 @@ ferox-core = { path = "ferox-core" }
 
 # CLI dependencies
 clap = { version = "4.5.54", features = ["derive"] }
+rustyline = "14.0"
