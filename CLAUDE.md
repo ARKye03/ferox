@@ -12,11 +12,16 @@ FEROX (Functional Expression Runtime for Operations and eXecution) is an interpr
 # Build the project
 cargo build
 
-# Run the interpreter (REPL)
+# Run the interpreter (REPL mode)
 cargo run
+
+# Run a .frx file
+cargo run <path/to/file.frx>
+cargo run examples/fibonacci.frx
 
 # Run in release mode
 cargo run --release
+cargo run --release script.frx
 
 # Run tests
 cargo test
@@ -305,3 +310,293 @@ Test cases to cover:
 - Error cases: missing `in`, unclosed parens, type errors on specific lines
 - Mixed single-line and multi-line code
 - REPL behavior: incomplete input, multi-line continuation, cancellation
+
+## File Execution Mode (.frx Files)
+
+The interpreter should support two execution modes:
+1. **REPL mode** - Interactive interpreter (no arguments)
+2. **File mode** - Execute a .frx source file (with file path argument)
+
+### Command-Line Interface
+
+```bash
+# REPL mode (interactive)
+cargo run
+
+# File execution mode
+cargo run <path/to/file.frx>
+
+# Or after building
+./ferox
+./ferox script.frx
+./ferox examples/fibonacci.frx
+```
+
+### File Format (.frx)
+
+FEROX source files use the `.frx` extension and contain a sequence of statements/expressions:
+
+```js
+// fibonacci.frx
+function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;
+
+let
+  a = 10;
+  b = fib(a)
+in print("Fibonacci of " @ a @ " is " @ b);
+
+print(fib(15));
+```
+
+**File execution semantics**:
+- Each statement is executed sequentially, top to bottom
+- Function definitions persist across statements (like in REPL)
+- No explicit output for non-print expressions (unlike REPL)
+  - REPL: `fib(5)` prints `8`
+  - File: `fib(5);` evaluates but produces no output
+  - File: `print(fib(5));` prints `8`
+- First error encountered stops execution
+
+### Binary Crate Architecture
+
+The binary crate (`src/main.rs`) should handle both modes:
+
+```rust
+use std::env;
+use std::fs;
+use std::io::{self, Write};
+use ferox_lib::{Interpreter, ParseError, RuntimeError};
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    match args.len() {
+        1 => run_repl(),
+        2 => run_file(&args[1]),
+        _ => {
+            eprintln!("Usage: ferox [script.frx]");
+            std::process::exit(1);
+        }
+    }
+}
+
+fn run_repl() {
+    // Interactive REPL implementation
+    // See "REPL Multi-line Input" section
+}
+
+fn run_file(path: &str) {
+    // Read and execute file
+    // See implementation strategy below
+}
+```
+
+### File Execution Implementation Strategy
+
+```rust
+fn run_file(path: &str) {
+    // 1. Validate file extension
+    if !path.ends_with(".frx") {
+        eprintln!("Error: File must have .frx extension");
+        std::process::exit(1);
+    }
+
+    // 2. Read file contents
+    let source = match fs::read_to_string(path) {
+        Ok(content) => content,
+        Err(e) => {
+            eprintln!("Error reading file '{}': {}", path, e);
+            std::process::exit(1);
+        }
+    };
+
+    // 3. Create interpreter instance
+    let mut interpreter = Interpreter::new();
+
+    // 4. Parse entire file into statements/expressions
+    // Option A: Parse as a single program (all statements)
+    // Option B: Parse line-by-line or statement-by-statement
+    match interpreter.parse_program(&source) {
+        Ok(statements) => {
+            // 5. Execute each statement
+            for stmt in statements {
+                if let Err(e) = interpreter.execute(stmt) {
+                    // Print error with file context
+                    print_file_error(path, &source, e);
+                    std::process::exit(1);
+                }
+            }
+        }
+        Err(e) => {
+            // Parse error - show with file context
+            print_file_error(path, &source, e);
+            std::process::exit(1);
+        }
+    }
+}
+
+fn print_file_error(filename: &str, source: &str, error: Error) {
+    // Format: ! ERROR_TYPE (filename:line:column): message
+    eprintln!("! {} ({}:{}:{}): {}",
+        error.kind,
+        filename,
+        error.span.line,
+        error.span.column,
+        error.message
+    );
+
+    // Optionally show source line with error marker
+    if let Some(line) = get_source_line(source, error.span.line) {
+        eprintln!("  |");
+        eprintln!("{} | {}", error.span.line, line);
+        eprintln!("  | {}^", " ".repeat(error.span.column - 1));
+    }
+}
+```
+
+### Library Crate Interface for File Mode
+
+The library crate needs to expose methods for parsing and executing programs:
+
+```rust
+// In ferox_lib
+
+pub struct Interpreter {
+    environment: Environment,  // Stores functions, variables
+}
+
+impl Interpreter {
+    pub fn new() -> Self {
+        // Initialize with built-in functions (sin, cos, log, etc.)
+    }
+
+    // For REPL: parse and execute single expression
+    pub fn eval(&mut self, source: &str) -> Result<Option<Value>, Error> {
+        // Returns Some(value) if expression produces output
+        // Returns None for definitions (functions)
+    }
+
+    // For files: parse entire program into statements
+    pub fn parse_program(&self, source: &str) -> Result<Vec<Statement>, ParseError> {
+        // Parse multiple statements from source
+    }
+
+    // Execute a single statement
+    pub fn execute(&mut self, stmt: Statement) -> Result<Option<Value>, RuntimeError> {
+        // Execute statement, update environment
+        // Return value only if statement explicitly produces output (print)
+    }
+
+    // Check if input is incomplete (for REPL only)
+    pub fn is_incomplete(&self, source: &str) -> bool {
+        // Used by REPL to determine if more input is needed
+    }
+}
+```
+
+### Program vs Statement vs Expression
+
+Design decision needed for file parsing:
+
+**Option A: Program is a sequence of top-level statements**
+```rust
+pub enum Statement {
+    Expression(Expr),           // Any expression ending with ;
+    FunctionDef(FunctionDef),   // function name(params) => body;
+}
+
+pub struct Program {
+    statements: Vec<Statement>,
+}
+```
+
+**Option B: Everything is an expression, statements are just expressions**
+```rust
+// No separate Statement type
+// A program is Vec<Expr>
+// Function definitions are Expr::FunctionDef
+```
+
+**Recommendation**: Option A - clearer separation between definitions and expressions, matches the language semantics better.
+
+### File Mode vs REPL Mode Differences
+
+| Aspect | REPL Mode | File Mode |
+|--------|-----------|-----------|
+| **Input** | Line-by-line with continuation | Entire file at once |
+| **Prompt** | `>` and `...` | None |
+| **Auto-print** | Yes (non-definition expressions) | No (only explicit `print`) |
+| **Error handling** | Print error, continue | Print error, exit |
+| **Incomplete input** | Wait for more lines | Syntax error |
+| **Exit** | EOF or explicit command | After execution or error |
+
+### File Execution Error Reporting
+
+Errors in file mode should include filename context:
+
+```
+! SEMANTIC ERROR (fibonacci.frx:8:15): Operator '+' cannot be used between 'string' and 'number'
+  |
+8 | in print("Result: " + fib(10));
+  |               ^
+```
+
+### Standard Library / Built-in Functions
+
+Both modes share the same built-in functions:
+- Math: `sin`, `cos`, `tan`, `log`, `sqrt`, `abs`, `floor`, `ceil`
+- Constants: `PI`, `E`
+- I/O: `print`
+- String: `@` operator for concatenation
+
+These should be initialized in `Interpreter::new()`.
+
+### File Execution Implementation Order
+
+1. **Update library API** - Add `parse_program` and `execute` methods
+2. **Implement Statement type** - Separate statements from expressions
+3. **Update main.rs** - Add command-line argument parsing
+4. **Implement run_file** - File reading and execution logic
+5. **Enhance error display** - File context in error messages
+6. **Test with .frx files** - Create example files and test execution
+
+### Example .frx Files for Testing
+
+**test_basic.frx**:
+```js
+print("Hello from FEROX!");
+print(42 + 58);
+```
+
+**test_functions.frx**:
+```js
+function square(x) => x * x;
+function cube(x) => x * square(x);
+
+print(square(5));
+print(cube(3));
+```
+
+**test_multiline.frx**:
+```js
+let
+  x = 10;
+  y = 20;
+  z = x + y
+in print("Sum: " @ z);
+```
+
+**test_fibonacci.frx**:
+```js
+function fib(n) => if (n > 1) fib(n-1) + fib(n-2) else 1;
+
+let i = 1 in print("fib(" @ i @ ") = " @ fib(i));
+let i = 5 in print("fib(" @ i @ ") = " @ fib(i));
+let i = 10 in print("fib(" @ i @ ") = " @ fib(i));
+```
+
+**test_error.frx** (should fail with clear error):
+```js
+function double(x) => x * 2;
+print(double("not a number"));  // Should produce semantic error
+```
