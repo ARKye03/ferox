@@ -174,7 +174,8 @@ impl Parser {
 
         let body = self.parse_expression()?;
 
-        let semicolon_token = self.consume(TokenKind::Semicolon, "Expected ';' after function body")?;
+        let semicolon_token =
+            self.consume(TokenKind::Semicolon, "Expected ';' after function body")?;
         let end_span = semicolon_token.span;
 
         Ok(Stmt::function_def(
@@ -522,7 +523,8 @@ impl Parser {
                     Vec::new()
                 };
 
-                let end_token = self.consume(TokenKind::RightParen, "Expected ')' after arguments")?;
+                let end_token =
+                    self.consume(TokenKind::RightParen, "Expected ')' after arguments")?;
                 let span = Span::new(expr.span.start, end_token.span.end);
 
                 return Ok(Expr::call(name.clone(), args, span));
@@ -567,7 +569,8 @@ impl Parser {
 
             TokenKind::LeftParen => {
                 let expr = self.parse_expression()?;
-                let end_token = self.consume(TokenKind::RightParen, "Expected ')' after expression")?;
+                let end_token =
+                    self.consume(TokenKind::RightParen, "Expected ')' after expression")?;
                 let span = Span::new(token.span.start, end_token.span.end);
 
                 // Update the expression's span to include the parentheses
@@ -647,7 +650,13 @@ mod tests {
             if let ExprKind::Binary { op, left, right } = &expr.kind {
                 assert_eq!(*op, BinaryOp::Add);
                 assert!(matches!(left.kind, ExprKind::Number(2.0)));
-                assert!(matches!(right.kind, ExprKind::Binary { op: BinaryOp::Mul, .. }));
+                assert!(matches!(
+                    right.kind,
+                    ExprKind::Binary {
+                        op: BinaryOp::Mul,
+                        ..
+                    }
+                ));
             } else {
                 panic!("Expected binary expression");
             }
@@ -664,7 +673,13 @@ mod tests {
             if let ExprKind::Binary { op, left, right } = &expr.kind {
                 assert_eq!(*op, BinaryOp::Pow);
                 assert!(matches!(left.kind, ExprKind::Number(2.0)));
-                assert!(matches!(right.kind, ExprKind::Binary { op: BinaryOp::Pow, .. }));
+                assert!(matches!(
+                    right.kind,
+                    ExprKind::Binary {
+                        op: BinaryOp::Pow,
+                        ..
+                    }
+                ));
             }
         }
     }
@@ -796,7 +811,10 @@ in x + y;"#;
         let program = parser.parse_program().unwrap();
 
         assert_eq!(program.statements.len(), 1);
-        assert!(matches!(program.statements[0].kind, StmtKind::FunctionDef { .. }));
+        assert!(matches!(
+            program.statements[0].kind,
+            StmtKind::FunctionDef { .. }
+        ));
     }
 
     #[test]
@@ -820,7 +838,13 @@ let x = 5 in print(square(x));
         if let StmtKind::Expression(expr) = &program.statements[0].kind {
             if let ExprKind::Binary { op, left, .. } = &expr.kind {
                 assert_eq!(*op, BinaryOp::Mul);
-                assert!(matches!(left.kind, ExprKind::Binary { op: BinaryOp::Add, .. }));
+                assert!(matches!(
+                    left.kind,
+                    ExprKind::Binary {
+                        op: BinaryOp::Add,
+                        ..
+                    }
+                ));
             }
         }
     }
@@ -844,7 +868,13 @@ let x = 5 in print(square(x));
         let program = parser.parse_program().unwrap();
 
         if let StmtKind::Expression(expr) = &program.statements[0].kind {
-            assert!(matches!(expr.kind, ExprKind::Binary { op: BinaryOp::Concat, .. }));
+            assert!(matches!(
+                expr.kind,
+                ExprKind::Binary {
+                    op: BinaryOp::Concat,
+                    ..
+                }
+            ));
         }
     }
 

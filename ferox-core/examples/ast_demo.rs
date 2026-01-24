@@ -1,5 +1,5 @@
 use ferox_core::ast::*;
-use ferox_core::lexer::{Span, Position};
+use ferox_core::lexer::{Position, Span};
 
 fn dummy_span() -> Span {
     Span::new(Position::new(), Position::new())

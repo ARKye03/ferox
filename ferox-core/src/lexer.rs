@@ -71,35 +71,35 @@ pub enum TokenKind {
     Function,
 
     // Operators - Arithmetic
-    Plus,      // +
-    Minus,     // -
-    Star,      // *
-    Slash,     // /
-    Caret,     // ^
-    At,        // @ (string concatenation)
+    Plus,  // +
+    Minus, // -
+    Star,  // *
+    Slash, // /
+    Caret, // ^
+    At,    // @ (string concatenation)
 
     // Operators - Comparison
-    EqualEqual,    // ==
-    BangEqual,     // !=
-    Less,          // <
-    Greater,       // >
-    LessEqual,     // <=
-    GreaterEqual,  // >=
+    EqualEqual,   // ==
+    BangEqual,    // !=
+    Less,         // <
+    Greater,      // >
+    LessEqual,    // <=
+    GreaterEqual, // >=
 
     // Operators - Logical
-    AmpAmp,    // &&
-    PipePipe,  // ||
-    Bang,      // !
+    AmpAmp,   // &&
+    PipePipe, // ||
+    Bang,     // !
 
     // Punctuation
-    LeftParen,     // (
-    RightParen,    // )
-    LeftBrace,     // { (for future use)
-    RightBrace,    // } (for future use)
-    Semicolon,     // ;
-    Comma,         // ,
-    Equal,         // =
-    Arrow,         // =>
+    LeftParen,  // (
+    RightParen, // )
+    LeftBrace,  // { (for future use)
+    RightBrace, // } (for future use)
+    Semicolon,  // ;
+    Comma,      // ,
+    Equal,      // =
+    Arrow,      // =>
 
     // Special
     Eof,
@@ -362,74 +362,119 @@ impl Lexer {
 
             Some('(') => {
                 self.advance();
-                Ok(Token::new(TokenKind::LeftParen, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::LeftParen,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some(')') => {
                 self.advance();
-                Ok(Token::new(TokenKind::RightParen, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::RightParen,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('{') => {
                 self.advance();
-                Ok(Token::new(TokenKind::LeftBrace, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::LeftBrace,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('}') => {
                 self.advance();
-                Ok(Token::new(TokenKind::RightBrace, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::RightBrace,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some(';') => {
                 self.advance();
-                Ok(Token::new(TokenKind::Semicolon, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::Semicolon,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some(',') => {
                 self.advance();
-                Ok(Token::new(TokenKind::Comma, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::Comma,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('+') => {
                 self.advance();
-                Ok(Token::new(TokenKind::Plus, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::Plus,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('-') => {
                 self.advance();
-                Ok(Token::new(TokenKind::Minus, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::Minus,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('*') => {
                 self.advance();
-                Ok(Token::new(TokenKind::Star, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::Star,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('/') => {
                 self.advance();
-                Ok(Token::new(TokenKind::Slash, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::Slash,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('^') => {
                 self.advance();
-                Ok(Token::new(TokenKind::Caret, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::Caret,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('@') => {
                 self.advance();
-                Ok(Token::new(TokenKind::At, Span::new(start_pos, self.position)))
+                Ok(Token::new(
+                    TokenKind::At,
+                    Span::new(start_pos, self.position),
+                ))
             }
 
             Some('=') => {
                 self.advance();
                 if self.current() == Some('=') {
                     self.advance();
-                    Ok(Token::new(TokenKind::EqualEqual, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::EqualEqual,
+                        Span::new(start_pos, self.position),
+                    ))
                 } else if self.current() == Some('>') {
                     self.advance();
-                    Ok(Token::new(TokenKind::Arrow, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::Arrow,
+                        Span::new(start_pos, self.position),
+                    ))
                 } else {
-                    Ok(Token::new(TokenKind::Equal, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::Equal,
+                        Span::new(start_pos, self.position),
+                    ))
                 }
             }
 
@@ -437,9 +482,15 @@ impl Lexer {
                 self.advance();
                 if self.current() == Some('=') {
                     self.advance();
-                    Ok(Token::new(TokenKind::BangEqual, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::BangEqual,
+                        Span::new(start_pos, self.position),
+                    ))
                 } else {
-                    Ok(Token::new(TokenKind::Bang, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::Bang,
+                        Span::new(start_pos, self.position),
+                    ))
                 }
             }
 
@@ -447,9 +498,15 @@ impl Lexer {
                 self.advance();
                 if self.current() == Some('=') {
                     self.advance();
-                    Ok(Token::new(TokenKind::LessEqual, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::LessEqual,
+                        Span::new(start_pos, self.position),
+                    ))
                 } else {
-                    Ok(Token::new(TokenKind::Less, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::Less,
+                        Span::new(start_pos, self.position),
+                    ))
                 }
             }
 
@@ -457,9 +514,15 @@ impl Lexer {
                 self.advance();
                 if self.current() == Some('=') {
                     self.advance();
-                    Ok(Token::new(TokenKind::GreaterEqual, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::GreaterEqual,
+                        Span::new(start_pos, self.position),
+                    ))
                 } else {
-                    Ok(Token::new(TokenKind::Greater, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::Greater,
+                        Span::new(start_pos, self.position),
+                    ))
                 }
             }
 
@@ -467,10 +530,16 @@ impl Lexer {
                 self.advance();
                 if self.current() == Some('&') {
                     self.advance();
-                    Ok(Token::new(TokenKind::AmpAmp, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::AmpAmp,
+                        Span::new(start_pos, self.position),
+                    ))
                 } else {
                     let span = Span::new(start_pos, self.position);
-                    Err(LexError::new("Unexpected character '&' (did you mean '&&'?)".to_string(), span))
+                    Err(LexError::new(
+                        "Unexpected character '&' (did you mean '&&'?)".to_string(),
+                        span,
+                    ))
                 }
             }
 
@@ -478,17 +547,26 @@ impl Lexer {
                 self.advance();
                 if self.current() == Some('|') {
                     self.advance();
-                    Ok(Token::new(TokenKind::PipePipe, Span::new(start_pos, self.position)))
+                    Ok(Token::new(
+                        TokenKind::PipePipe,
+                        Span::new(start_pos, self.position),
+                    ))
                 } else {
                     let span = Span::new(start_pos, self.position);
-                    Err(LexError::new("Unexpected character '|' (did you mean '||'?)".to_string(), span))
+                    Err(LexError::new(
+                        "Unexpected character '|' (did you mean '||'?)".to_string(),
+                        span,
+                    ))
                 }
             }
 
             Some(ch) => {
                 self.advance();
                 let span = Span::new(start_pos, self.position);
-                Err(LexError::new(format!("Unexpected character '{}'", ch), span))
+                Err(LexError::new(
+                    format!("Unexpected character '{}'", ch),
+                    span,
+                ))
             }
         }
     }

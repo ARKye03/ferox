@@ -11,7 +11,7 @@ fn main() {
     for (description, code) in test_cases {
         println!("\n{}: {}", description, code);
         println!("{:-<60}", "");
-        
+
         let mut lexer = Lexer::new(code);
         match lexer.tokenize() {
             Ok(_) => println!("Unexpectedly succeeded!"),
@@ -23,7 +23,7 @@ fn main() {
     println!("{:-<60}", "");
     let code = r#"let x = "hello" @ " world" in print(x);"#;
     println!("{}", code);
-    
+
     let mut lexer = Lexer::new(code);
     match lexer.tokenize() {
         Ok(tokens) => println!("Success! {} tokens generated", tokens.len()),

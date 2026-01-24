@@ -13,11 +13,11 @@ use std::fmt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinaryOp {
     // Arithmetic
-    Add,      // +
-    Sub,      // -
-    Mul,      // *
-    Div,      // /
-    Pow,      // ^
+    Add, // +
+    Sub, // -
+    Mul, // *
+    Div, // /
+    Pow, // ^
 
     // Comparison
     Equal,        // ==
@@ -28,11 +28,11 @@ pub enum BinaryOp {
     GreaterEqual, // >=
 
     // Logical
-    And,  // &&
-    Or,   // ||
+    And, // &&
+    Or,  // ||
 
     // String concatenation
-    Concat,  // @
+    Concat, // @
 }
 
 impl fmt::Display for BinaryOp {
@@ -64,8 +64,8 @@ impl fmt::Display for BinaryOp {
 /// Unary operators in FEROX
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnaryOp {
-    Not,   // !
-    Neg,   // - (negation)
+    Not, // !
+    Neg, // - (negation)
 }
 
 impl fmt::Display for UnaryOp {
@@ -118,16 +118,10 @@ pub enum ExprKind {
     },
 
     /// Unary operation: !x, -5
-    Unary {
-        op: UnaryOp,
-        operand: Box<Expr>,
-    },
+    Unary { op: UnaryOp, operand: Box<Expr> },
 
     /// Function call: print(x), sin(3.14)
-    Call {
-        name: String,
-        args: Vec<Expr>,
-    },
+    Call { name: String, args: Vec<Expr> },
 
     /// If-else expression: if (cond) expr1 else expr2
     If {
@@ -235,8 +229,16 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             }
-            ExprKind::If { condition, then_branch, else_branch } => {
-                write!(f, "(if {} then {} else {})", condition, then_branch, else_branch)
+            ExprKind::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
+                write!(
+                    f,
+                    "(if {} then {} else {})",
+                    condition, then_branch, else_branch
+                )
             }
             ExprKind::Let { declarations, body } => {
                 write!(f, "(let ")?;
@@ -511,7 +513,10 @@ mod tests {
         let stmt2 = Stmt::expression(
             Expr::call(
                 "add".to_string(),
-                vec![Expr::number(2.0, dummy_span()), Expr::number(3.0, dummy_span())],
+                vec![
+                    Expr::number(2.0, dummy_span()),
+                    Expr::number(3.0, dummy_span()),
+                ],
                 dummy_span(),
             ),
             dummy_span(),

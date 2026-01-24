@@ -10,7 +10,10 @@ fn main() {
         ("Let-in expression", "let x = 10, y = 20 in x + y;"),
         ("If-else", "if (x > 0) \"positive\" else \"negative\";"),
         ("Function definition", "function square(x) => x * x;"),
-        ("Factorial", "function factorial(n) => if (n <= 1) 1 else n * factorial(n - 1);"),
+        (
+            "Factorial",
+            "function factorial(n) => if (n <= 1) 1 else n * factorial(n - 1);",
+        ),
         ("String concatenation", r#""Hello, " @ "World!";"#),
         ("Logical operators", "true && false || !true;"),
         ("Power operator", "2 ^ 3 ^ 4;"),
@@ -21,18 +24,16 @@ fn main() {
         println!("\n{}", description);
         println!("{:-<70}", "");
         println!("Code: {}", code);
-        
+
         match Parser::from_source(code) {
-            Ok(mut parser) => {
-                match parser.parse_program() {
-                    Ok(program) => {
-                        println!("AST:  {}", program);
-                    }
-                    Err(e) => {
-                        eprintln!("Parse error: {}", e);
-                    }
+            Ok(mut parser) => match parser.parse_program() {
+                Ok(program) => {
+                    println!("AST:  {}", program);
                 }
-            }
+                Err(e) => {
+                    eprintln!("Parse error: {}", e);
+                }
+            },
             Err(e) => {
                 eprintln!("Lexer error: {}", e);
             }
@@ -50,22 +51,20 @@ function square(x) => x * x;
 let x = 5 in print(factorial(x));
 let y = 10 in print(square(y));
 "#;
-    
+
     println!("Code:");
     println!("{}", program);
     println!("\nParsed AST:");
-    
+
     match Parser::from_source(program) {
-        Ok(mut parser) => {
-            match parser.parse_program() {
-                Ok(prog) => {
-                    println!("{}", prog);
-                }
-                Err(e) => {
-                    eprintln!("Parse error: {}", e);
-                }
+        Ok(mut parser) => match parser.parse_program() {
+            Ok(prog) => {
+                println!("{}", prog);
             }
-        }
+            Err(e) => {
+                eprintln!("Parse error: {}", e);
+            }
+        },
         Err(e) => {
             eprintln!("Lexer error: {}", e);
         }

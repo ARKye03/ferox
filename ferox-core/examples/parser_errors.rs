@@ -20,18 +20,16 @@ fn main() {
         println!("\n{}", description);
         println!("{:-<70}", "");
         println!("Code: {}", code);
-        
+
         match Parser::from_source(code) {
-            Ok(mut parser) => {
-                match parser.parse_program() {
-                    Ok(_) => {
-                        println!("❌ Unexpectedly succeeded!");
-                    }
-                    Err(e) => {
-                        println!("✓ Error detected: {}", e);
-                    }
+            Ok(mut parser) => match parser.parse_program() {
+                Ok(_) => {
+                    println!("❌ Unexpectedly succeeded!");
                 }
-            }
+                Err(e) => {
+                    println!("✓ Error detected: {}", e);
+                }
+            },
             Err(e) => {
                 println!("✓ Lexer error: {}", e);
             }
@@ -43,18 +41,16 @@ fn main() {
     println!("{:-<70}", "");
     let valid_code = "let x = 42 in print(x);";
     println!("Code: {}", valid_code);
-    
+
     match Parser::from_source(valid_code) {
-        Ok(mut parser) => {
-            match parser.parse_program() {
-                Ok(program) => {
-                    println!("✓ Successfully parsed: {}", program);
-                }
-                Err(e) => {
-                    println!("Parse error: {}", e);
-                }
+        Ok(mut parser) => match parser.parse_program() {
+            Ok(program) => {
+                println!("✓ Successfully parsed: {}", program);
             }
-        }
+            Err(e) => {
+                println!("Parse error: {}", e);
+            }
+        },
         Err(e) => {
             println!("Lexer error: {}", e);
         }

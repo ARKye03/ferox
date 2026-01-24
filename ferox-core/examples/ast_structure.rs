@@ -3,7 +3,7 @@
 fn main() {
     println!("FEROX AST Structure");
     println!("{:=<70}", "");
-    
+
     println!("\n## Operators");
     println!("{:-<70}", "");
     println!("BinaryOp:");
@@ -22,7 +22,7 @@ fn main() {
     println!("  - String(String)        e.g., \"hello\"");
     println!("  - Boolean(bool)         e.g., true, false");
     println!("  - Identifier(String)    e.g., x, foo");
-    
+
     println!("\nCompound Expressions:");
     println!("  - Binary {{ op, left, right }}");
     println!("      e.g., 2 + 3, x == y, \"hello\" @ \"world\"");
@@ -67,7 +67,7 @@ fn main() {
     println!("  - Expr::call(name, args, span)");
     println!("  - Expr::if_else(cond, then, else, span)");
     println!("  - Expr::let_in(decls, body, span)");
-    
+
     println!("\nStmt constructors:");
     println!("  - Stmt::expression(expr, span)");
     println!("  - Stmt::function_def(name, params, body, span)");

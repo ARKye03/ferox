@@ -16,14 +16,12 @@ in print(z);"#;
     println!("Code:");
     println!("{}", code1);
     println!("\nParsed AST:");
-    
+
     match Parser::from_source(code1) {
-        Ok(mut parser) => {
-            match parser.parse_program() {
-                Ok(program) => println!("{}", program),
-                Err(e) => eprintln!("Parse error: {}", e),
-            }
-        }
+        Ok(mut parser) => match parser.parse_program() {
+            Ok(program) => println!("{}", program),
+            Err(e) => eprintln!("Parse error: {}", e),
+        },
         Err(e) => eprintln!("Lexer error: {}", e),
     }
 
@@ -39,14 +37,12 @@ in print(z);"#;
     println!("Code:");
     println!("{}", code2);
     println!("\nParsed AST:");
-    
+
     match Parser::from_source(code2) {
-        Ok(mut parser) => {
-            match parser.parse_program() {
-                Ok(program) => println!("{}", program),
-                Err(e) => eprintln!("Parse error: {}", e),
-            }
-        }
+        Ok(mut parser) => match parser.parse_program() {
+            Ok(program) => println!("{}", program),
+            Err(e) => eprintln!("Parse error: {}", e),
+        },
         Err(e) => eprintln!("Lexer error: {}", e),
     }
 
@@ -70,14 +66,12 @@ in print("GCD: " @ result);
     println!("Code:");
     println!("{}", code3);
     println!("\nParsed AST:");
-    
+
     match Parser::from_source(code3) {
-        Ok(mut parser) => {
-            match parser.parse_program() {
-                Ok(program) => println!("{}", program),
-                Err(e) => eprintln!("Parse error: {}", e),
-            }
-        }
+        Ok(mut parser) => match parser.parse_program() {
+            Ok(program) => println!("{}", program),
+            Err(e) => eprintln!("Parse error: {}", e),
+        },
         Err(e) => eprintln!("Lexer error: {}", e),
     }
 
@@ -89,14 +83,12 @@ in print("GCD: " @ result);
     println!("Code:");
     println!("{}", code4);
     println!("\nParsed AST:");
-    
+
     match Parser::from_source(code4) {
-        Ok(mut parser) => {
-            match parser.parse_program() {
-                Ok(program) => println!("{}", program),
-                Err(e) => eprintln!("Parse error: {}", e),
-            }
-        }
+        Ok(mut parser) => match parser.parse_program() {
+            Ok(program) => println!("{}", program),
+            Err(e) => eprintln!("Parse error: {}", e),
+        },
         Err(e) => eprintln!("Lexer error: {}", e),
     }
 }

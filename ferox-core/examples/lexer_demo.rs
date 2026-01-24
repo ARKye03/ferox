@@ -15,12 +15,11 @@ let x = 5 in print(factorial(x));"#;
     loop {
         match lexer.next_token() {
             Ok(token) => {
-                println!("{:4}:{:<3} {:?}", 
-                    token.span.start.line,
-                    token.span.start.column,
-                    token.kind
+                println!(
+                    "{:4}:{:<3} {:?}",
+                    token.span.start.line, token.span.start.column, token.kind
                 );
-                
+
                 if token.kind == ferox_core::TokenKind::Eof {
                     break;
                 }
