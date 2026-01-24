@@ -1,7 +1,19 @@
-[package]
-name = "ferox"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "2"
+members = [
+    "ferox-core",
+    "ferox-cli",
+]
 
-[dependencies]
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["FEROX Team"]
+license = "MIT"
+
+[workspace.dependencies]
+# Core library (no external dependencies allowed)
+ferox-core = { path = "ferox-core" }
+
+# CLI dependencies
 clap = { version = "4.5.54", features = ["derive"] }

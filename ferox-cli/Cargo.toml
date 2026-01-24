@@ -1,0 +1,14 @@
+[package]
+name = "ferox-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ferox"
+path = "src/main.rs"
+
+[dependencies]
+ferox-core.workspace = true
+clap.workspace = true

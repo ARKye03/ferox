@@ -1,0 +1,10 @@
+[package]
+name = "ferox-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# NO external dependencies allowed - only Rust standard library
+# This ensures the core logic remains pure and portable
