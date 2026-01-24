@@ -73,6 +73,7 @@ fn eval_code(code: String, state: tauri::State<InterpreterState>) -> EvalRespons
     };
 
     let mut evaluator = state.evaluator.lock().unwrap();
+    *evaluator = Evaluator::new();
     let mut last_value = None;
     let mut decorations = Vec::new();
 
