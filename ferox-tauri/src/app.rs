@@ -92,6 +92,7 @@ pub fn App() -> impl IntoView {
     let on_input = move |ev| {
         let new_code = event_target_value(&ev);
         set_code.set(new_code.clone());
+        set_decorations.set(Vec::new());
 
         if let Some(timer_id) = debounce_timer.get_untracked() {
             web_sys::window()
