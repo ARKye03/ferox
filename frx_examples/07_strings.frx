@@ -1,0 +1,25 @@
+print("=== String Concatenation ===");
+print("Hello, " @ "World!");
+
+print("");
+print("=== String with Numbers ===");
+print("The answer is: " @ 42);
+print("2 + 2 = " @ (2 + 2));
+
+print("");
+print("=== String with Booleans ===");
+print("True or false? " @ true);
+print("Result: " @ (5 > 3));
+
+print("");
+print("=== Complex String Building ===");
+let
+  name = "FEROX";
+  version = 1;
+  status = "ready"
+in print(name @ " v" @ version @ " is " @ status @ "!");
+
+print("");
+print("=== String Comparisons ===");
+print("abc" @ " < " @ "xyz" @ " is " @ ("abc" < "xyz"));
+print("hello" @ " == " @ "hello" @ " is " @ ("hello" == "hello"));

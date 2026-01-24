@@ -1,0 +1,36 @@
+print("=== Factorial ===");
+function factorial(n) => if (n <= 1) 1 else n * factorial(n - 1);
+
+print("factorial(5) = " @ factorial(5));
+print("factorial(10) = " @ factorial(10));
+
+print("");
+print("=== Fibonacci ===");
+function fibonacci(n) => if (n <= 1) n else fibonacci(n - 1) + fibonacci(n - 2);
+
+print("fibonacci(10) = " @ fibonacci(10));
+print("fibonacci(15) = " @ fibonacci(15));
+
+print("");
+print("=== Greatest Common Divisor ===");
+function gcd(a, b) => if (b == 0) a else gcd(b, a - floor(a / b) * b);
+
+print("gcd(48, 18) = " @ gcd(48, 18));
+print("gcd(100, 35) = " @ gcd(100, 35));
+
+print("");
+print("=== Power Function ===");
+function pow(base, exp) => 
+  if (exp == 0) 
+    1 
+  else 
+    base * pow(base, exp - 1);
+
+print("pow(2, 10) = " @ pow(2, 10));
+print("pow(3, 5) = " @ pow(3, 5));
+
+print("");
+print("=== Sum of Natural Numbers ===");
+function sum(n) => if (n <= 0) 0 else n + sum(n - 1);
+
+print("sum(100) = " @ sum(100));

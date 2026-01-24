@@ -1,0 +1,20 @@
+print("=== Simple Functions ===");
+
+function square(x) => x * x;
+print("square(5) = " @ square(5));
+
+function add(a, b) => a + b;
+print("add(3, 7) = " @ add(3, 7));
+
+function max(a, b) => if (a > b) a else b;
+print("max(10, 20) = " @ max(10, 20));
+
+function min(a, b) => if (a < b) a else b;
+print("min(10, 20) = " @ min(10, 20));
+
+print("");
+print("=== Functions Calling Functions ===");
+
+function abs(x) => if (x < 0) -x else x;
+function distance(a, b) => abs(a - b);
+print("distance(10, 25) = " @ distance(10, 25));

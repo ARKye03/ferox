@@ -1,0 +1,28 @@
+print("=== Simple Let-In ===");
+let x = 42 in print("x = " @ x);
+
+print("");
+print("=== Multiple Variables ===");
+let x = 10, y = 20, z = 30 in print("x + y + z = " @ (x + y + z));
+
+print("");
+print("=== Multi-line Let-In ===");
+let
+  a = 5;
+  b = 10;
+  c = a + b;
+  result = c * 2
+in print("result = " @ result);
+
+print("");
+print("=== Nested Scopes ===");
+let x = 1 in
+  let y = x + 1 in
+    let z = y + 1 in
+      print("z = " @ z);
+
+print("");
+print("=== Variable Shadowing ===");
+let x = 10 in
+  let x = 20 in
+    print("Inner x = " @ x);

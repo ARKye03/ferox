@@ -1,0 +1,27 @@
+print("=== If-Else Expressions ===");
+
+let x = 10 in
+  if (x > 5)
+    print("x is greater than 5")
+  else
+    print("x is not greater than 5");
+
+print("");
+print("=== Nested If-Else ===");
+let score = 85 in
+  if (score >= 90)
+    print("Grade: A")
+  else if (score >= 80)
+    print("Grade: B")
+  else if (score >= 70)
+    print("Grade: C")
+  else if (score >= 60)
+    print("Grade: D")
+  else
+    print("Grade: F");
+
+print("");
+print("=== Returning Values ===");
+let x = 7 in
+  let result = if (x % 2 == 0) "even" else "odd"
+  in print("7 is " @ result);
