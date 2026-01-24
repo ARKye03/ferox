@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **FEROX** (Functional Expression Runtime for Operations and eXecution) is an interpreter for a simplified imperative/functional programming language. This is an educational project focused on building an interpreter from scratch using Rust.
 
+## Conding Guidelines
+
+- Do comments sparingly, only comment complex code
+
 The interpreter supports:
 - Interactive REPL mode
 - File execution mode (.frx files)
