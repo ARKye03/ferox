@@ -14,10 +14,19 @@ struct EvalRequest {
     code: String,
 }
 
+#[derive(Deserialize, Clone)]
+struct LineDecoration {
+    line: usize,
+    result: String,
+}
+
 #[derive(Deserialize)]
 #[serde(tag = "type")]
 enum EvalResponse {
-    Success { value: Option<String> },
+    Success {
+        value: Option<String>,
+        decorations: Vec<LineDecoration>,
+    },
     Incomplete,
     Error {
         message: String,
@@ -34,6 +43,7 @@ pub fn App() -> impl IntoView {
     let (is_error, set_is_error) = signal(false);
     let (is_evaluating, set_is_evaluating) = signal(false);
     let (debounce_timer, set_debounce_timer) = signal(None::<i32>);
+    let (decorations, set_decorations) = signal(Vec::<LineDecoration>::new());
 
     let evaluate_code = move |code_text: String| {
         if code_text.trim().is_empty() {
@@ -51,7 +61,8 @@ pub fn App() -> impl IntoView {
             let response: EvalResponse = serde_wasm_bindgen::from_value(result).unwrap();
 
             match response {
-                EvalResponse::Success { value } => {
+                EvalResponse::Success { value, decorations: decors } => {
+                    set_decorations.set(decors);
                     if let Some(val) = value {
                         set_output.set(val);
                         set_is_error.set(false);
@@ -61,10 +72,12 @@ pub fn App() -> impl IntoView {
                     }
                 }
                 EvalResponse::Incomplete => {
+                    set_decorations.set(Vec::new());
                     set_output.set("// Code incomplete, keep writing...".to_string());
                     set_is_error.set(false);
                 }
                 EvalResponse::Error { message, error_type, line, column } => {
+                    set_decorations.set(Vec::new());
                     let err_msg = format!("{} error at {}:{}\n{}",
                         error_type, line, column, message);
                     set_output.set(err_msg);
@@ -113,7 +126,24 @@ pub fn App() -> impl IntoView {
             set_code.set(String::new());
             set_output.set("// Output will appear here".to_string());
             set_is_error.set(false);
+            set_decorations.set(Vec::new());
         });
+    };
+
+    let on_scroll = move |ev| {
+        let textarea: web_sys::HtmlTextAreaElement = event_target(&ev);
+        let scroll_top = textarea.scroll_top();
+        let scroll_left = textarea.scroll_left();
+
+        if let Some(window) = web_sys::window() {
+            if let Some(document) = window.document() {
+                if let Some(overlay) = document.get_element_by_id("decorations-overlay") {
+                    let html_element: web_sys::HtmlElement = overlay.dyn_into().unwrap();
+                    let _ = html_element.style().set_property("transform",
+                        &format!("translate({}px, {}px)", -scroll_left, -scroll_top));
+                }
+            }
+        }
     };
 
     view! {
@@ -121,13 +151,33 @@ pub fn App() -> impl IntoView {
             <h1>"FEROX REPL"</h1>
 
             <div class="editor-panel">
-                <textarea
-                    class="code-editor"
-                    prop:value=move || code.get()
-                    on:input=on_input
-                    placeholder="Enter FEROX code..."
-                    spellcheck="false"
-                />
+                <div class="editor-wrapper">
+                    <textarea
+                        class="code-editor"
+                        prop:value=move || code.get()
+                        on:input=on_input
+                        on:scroll=on_scroll
+                        placeholder="Enter FEROX code..."
+                        spellcheck="false"
+                    />
+                    <div class="decorations-overlay" id="decorations-overlay">
+                        <For
+                            each=move || decorations.get()
+                            key=|d| d.line
+                            children=move |decoration: LineDecoration| {
+                                let line_num = decoration.line;
+                                view! {
+                                    <div
+                                        class="decoration-line"
+                                        style=move || format!("top: {}px;", (line_num - 1) * 26)
+                                    >
+                                        {decoration.result}
+                                    </div>
+                                }
+                            }
+                        />
+                    </div>
+                </div>
             </div>
 
             <div class="output-panel">

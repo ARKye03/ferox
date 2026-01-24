@@ -1,11 +1,18 @@
 use std::sync::Mutex;
 use ferox_core::{Evaluator, Parser};
 
+#[derive(serde::Serialize, Clone)]
+struct LineDecoration {
+    line: usize,
+    result: String,
+}
+
 #[derive(serde::Serialize)]
 #[serde(tag = "type")]
 enum EvalResponse {
     Success {
         value: Option<String>,
+        decorations: Vec<LineDecoration>,
     },
     Incomplete,
     Error {
@@ -67,10 +74,19 @@ fn eval_code(code: String, state: tauri::State<InterpreterState>) -> EvalRespons
 
     let mut evaluator = state.evaluator.lock().unwrap();
     let mut last_value = None;
+    let mut decorations = Vec::new();
 
     for stmt in &program.statements {
         match evaluator.eval_statement(stmt) {
-            Ok(val) => last_value = val,
+            Ok(val) => {
+                if let Some(value) = &val {
+                    decorations.push(LineDecoration {
+                        line: stmt.span.end.line,
+                        result: format!("// => {}", value.to_display_string()),
+                    });
+                }
+                last_value = val;
+            }
             Err(e) => {
                 return EvalResponse::Error {
                     message: e.message.clone(),
@@ -83,7 +99,8 @@ fn eval_code(code: String, state: tauri::State<InterpreterState>) -> EvalRespons
     }
 
     EvalResponse::Success {
-        value: last_value.map(|v| v.to_display_string())
+        value: last_value.map(|v| v.to_display_string()),
+        decorations,
     }
 }
 
