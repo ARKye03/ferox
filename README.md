@@ -18,7 +18,7 @@ This project is a rewrite and modernization of an old college project of mine.
 **Recursion** - Full support for recursive functions  
 **Lexical Scoping** - Variables shadow outer scopes cleanly  
 **Built-in Math** - Trigonometry, logarithms, and more  
-**No Dependencies** - Core library uses only Rust's standard library  
+**No Dependencies** - Core library uses only Rust's standard library
 
 ## Quick Start
 
@@ -70,16 +70,16 @@ Hello, World!
 ### Variables and Scoping
 
 ```javascript
-let x = 10 in x + 5;                    // 15
+let x = 10 in x + 5; // 15
 
-let x = 1, y = 2, z = 3 in x + y + z;  // 6
+let x = 1,
+  y = 2,
+  z = 3 in x + y + z; // 6
 
 // Multi-line let expressions
-let
-  x = 10;
-  y = 20;
-  z = x + y
-in print(z);                             // 30
+let x = 10;
+y = 20;
+z = x + y in print(z); // 30
 ```
 
 ### Functions
@@ -91,10 +91,10 @@ function square(x) => x * x;
 square(5);  // 25
 
 // Recursive functions work great!
-function factorial(n) => 
-  if (n <= 1) 
-    1 
-  else 
+function factorial(n) =>
+  if (n <= 1)
+    1
+  else
     n * factorial(n - 1);
 
 factorial(5);  // 120
@@ -144,17 +144,17 @@ let age = 18 in
 ```javascript
 function celsius_to_fahrenheit(c) => (c * 9 / 5) + 32;
 
-let temp = 25 in 
+let temp = 25 in
   print("25°C = " @ celsius_to_fahrenheit(temp) @ "°F");
 ```
 
 **Fibonacci:**
 
 ```javascript
-function fib(n) => 
-  if (n <= 1) 
-    n 
-  else 
+function fib(n) =>
+  if (n <= 1)
+    n
+  else
     fib(n - 1) + fib(n - 2);
 
 print(fib(10));  // 55
@@ -235,7 +235,7 @@ FEROX was designed with these principles:
 
 ## Error Handling
 
-FEROX provides clear, helpful error messages with line and column numbers:
+FEROX provides clear, helpful error messages (I hope so) with line and column numbers:
 
 ```error
 Runtime error at 2:5: Division by zero
