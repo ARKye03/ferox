@@ -65,6 +65,65 @@ $ cargo run -p ferox-cli -- hello.frx
 Hello, World!
 ```
 
+## Desktop App (FEROX Tauri)
+
+![FEROX Tauri App](.github/ferox-ui.webp)
+
+A modern desktop application with live-coding experience, built with Tauri and Leptos.
+
+### Desktop App Features
+
+✨ **Live Editor with Real-Time Evaluation**
+
+- Large textarea for multi-line code editing
+- Auto-evaluation with 500ms debounce
+- Instant feedback as you type
+
+🎨 **Inline Result Decorations**
+
+- Ghost comments showing results at the end of each line
+- Glowing cyan decorations: `square(5);  // => 25`
+- Scroll-synced overlay that moves with your code
+
+🔄 **Interactive Experience**
+
+- Fresh interpreter on every evaluation
+- No stale state or redefinition errors
+- Premium feel like RunJS/Quokka.js
+
+### Desktop App Quick Start
+
+**Development Mode:**
+
+```bash
+cd ferox-tauri/src-tauri
+cargo tauri dev
+```
+
+**Production Build:**
+
+```bash
+cd ferox-tauri/src-tauri
+cargo tauri build
+```
+
+Built app will be in `src-tauri/target/release/bundle/`.
+
+### Usage
+
+Write code in the editor, and results appear automatically:
+
+```ferox
+function fib(n) =>
+  if (n <= 1) n
+  else fib(n - 1) + fib(n - 2);    // => [function]
+
+fib(10);                            // => 55
+```
+
+- **Eval** button for immediate execution
+- **Reset** button to clear everything
+
 ## Language Overview
 
 ### Variables and Scoping
