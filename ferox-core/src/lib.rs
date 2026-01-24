@@ -10,8 +10,8 @@
 //!
 //! This is a library crate with NO external dependencies - only Rust std.
 
-// Module declarations (uncomment as you implement them)
-// pub mod lexer;
+// Module declarations
+pub mod lexer;
 // pub mod parser;
 // pub mod ast;
 // pub mod evaluator;
@@ -19,12 +19,7 @@
 // pub mod error;
 
 // Re-exports for convenient access
-// pub use lexer::*;
-// pub use parser::*;
-// pub use ast::*;
-// pub use evaluator::*;
-// pub use environment::*;
-// pub use error::*;
+pub use lexer::*;
 
 #[cfg(test)]
 mod tests {
